@@ -101,12 +101,12 @@ class NVT1N:
     def getBRUTTO(self):
         weight=None
         res=self.query()
-        if res is None: return None,False
+        if res is None: return None,False,0
         
         con=ord(res[-1:])
-        if (con & self.__OVERLOAD) != self.__OVERLOAD:
+        if ((con & self.__OVERLOAD) != self.__OVERLOAD):
 	    weight=float(res[:-1].strip())
-        return weight,((con & self.__SEDATION)==self.__SEDATION)
+        return weight,((con & self.__SEDATION)==self.__SEDATION),con
 
     def regWeight(self,weight):
         if self.__d.reg(weight):
@@ -120,23 +120,40 @@ if __name__ == "__main__":
     nvt=NVT1N(DEVICE,BAUDRATE,ADDR)
     nvt.debug=True
     old_weight=0
+    last_stab_weight=0
     cnt=0
     must_dump=False
     starting=True
     nvt.log.c("STARTING...")
 
-    if path.isfile(DUMP_FILE):
-        with open(DUMP_FILE,"rb") as dump:
-            old_weight=pickle.load(dump)
-
+    #if path.isfile(DUMP_FILE):
+    #    with open(DUMP_FILE,"rb") as dump:
+    #        old_weight=pickle.load(dump)
+    
     while True:
         try:
 	    #nvt.testquery()
 	    #nvt.log.d(nvt.query())
-            weight,sedation=nvt.getBRUTTO()
+            cur,stab,con=nvt.getBRUTTO()
             if nvt.debug:
-                nvt.log.d(__name__+": weight = %1.1f (%i)" % (weight,sedation))
-            if weight is None: continue
+                nvt.log.d(__name__+": weight = %1.1f (%i) (%x)" % (cur,stab,con))
+            if cur is None: continue
+
+		
+		
+	    if last_stab_weight-cur>FILTER:
+		if nvt.regWeight(last_stab_weight):
+		    last_stab_weight=0
+		    cnt=0
+			    
+	    if stab:
+		if cnt>2:
+		    last_stab_weight=cur
+		else:
+		    cnt+=1
+	    else:
+		cnt=0
+	
 
             #if (sedation) and (starting) and (abs(weight-TABLE_WEIGHT)<1):
             #    continue
@@ -145,7 +162,7 @@ if __name__ == "__main__":
             #    must_dump=not(old_weight==0)
             #    old_weight=0
             #    starting=False
-            #elif (old_weight==0) and (not starting):
+            #elif (abs(weight-old_weight)<FILTER) and (not starting):
             #    if (sedation):
             #        cnt+=1
             #        if (cnt>2) and tenso.regWeight(weight):
@@ -158,6 +175,7 @@ if __name__ == "__main__":
             #    with open(DUMP_FILE,"wb") as dump:
             #        pickle.dump(old_weight,dump)
             #    must_dump=False
+	    #old_weight=weight
 
         except Exception as e:
             nvt.log.e(__name__+' ERROR: %s' % e)
