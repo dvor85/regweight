@@ -24,6 +24,6 @@ if __name__ == "__main__":
     must_dump=False
     starting=True
     nvt.log.c("STARTING...")
-    nvt.testquery()
+    nvt.rawquery()
 
 

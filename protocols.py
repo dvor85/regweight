@@ -136,44 +136,36 @@ class NVT1N:
     def query(self):
         res=None
         try:
-            if self.__ser.isOpen():
-                trys=0
-                outlen=0
-                while (outlen==0)and(trys<(self.__ser.timeout*10)):
-                    trys+=1
-                    outlen=self.__ser.inWaiting()
-                    time.sleep(0.1)
-
-                if outlen>0:
-                    ans=self.__ser.read(outlen)
-                    out_obj=self.__pattern_kadr.search(ans)
-                    outdata=out_obj.group('data')
-                    res=outdata if (len(outdata)>1) else None
-            else:
-                self.__ser.open()
+            ans=self.rawquery()
+	    if not ans is None:
+        	out_obj=self.__pattern_kadr.search(ans)
+        	outdata=out_obj.group('data')
+        	res=outdata if (len(outdata)>1) else None
         except Exception as e:
             self.log.e('query ERROR: %s' % e)
             if not ans is None:
                 self.log.e('query ANSWER: %s' % "\\x".join(["%02x" % ord(x) for x in ans]))
-        finally:
-            #self.__ser.close()
-            pass
         return res
     
-    def testquery(self):
-	self.__ser.open()
-	trys=0
-        outlen=0
-        while (outlen==0)and(trys<(self.__ser.timeout*10)):
-            trys+=1
-            outlen=self.__ser.inWaiting()
-            time.sleep(0.1)
-	if outlen>0:
-	    ans=self.__ser.read(outlen)
-	    time.sleep(0.1)
-	    self.log.d('hex query ANSWER: %s' % " ".join(["%02x" % ord(x) for x in ans]))
-	    self.log.d('ansi query answer: %s' % " ".join(["%s" % x for x in ans]))
-	self.__ser.close()
+    def rawquery(self):
+	ans=None
+	try:
+	    if not self.__ser.isOpen():
+		self.__ser.open()
+	    if self.__ser.isOpen():
+		trys=0
+		outlen=0
+    		while (outlen==0)and(trys<(self.__ser.timeout*10)):
+        	    trys+=1
+        	    outlen=self.__ser.inWaiting()
+        	    time.sleep(0.1)
+		if outlen>0:
+		    ans=self.__ser.read(outlen)
+	    else:
+		self.log.e('rawquery ERROR: Can\'t open serial device')
+	except Exception as e:
+            self.log.e('rawquery ERROR: %s' % e)
+	return ans
 
     def getBRUTTO(self):
         weight=None

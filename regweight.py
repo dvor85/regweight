@@ -41,7 +41,7 @@ if __name__ == "__main__":
 	        if nvt.regWeight(last_stab_weight):
 		    last_stab_weight=0
 		
-	    elif (cur>FILTER) and (cnt>2):
+	    elif (cur>FILTER) and (cnt>1):
 	        if (last_stab_weight>FILTER):
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
