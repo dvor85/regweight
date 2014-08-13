@@ -16,7 +16,7 @@ TABLE_WEIGHT=0
 FILTER = 200
 
 class NVT1N:
-    __SEDATION=0x02
+    __STABILITY=0x02
     __OVERLOAD=0x08
     __NULL=0x01
 
@@ -32,25 +32,6 @@ class NVT1N:
         self.__pattern_kadr=re.compile('\x02(?P<data>.{8})\x6b\x67\x0d')
         self.__d=DBreg(SELF_PATH)
 
-
-    def CRCMaker(self, b_input, b_crc):
-        w = (b_input & 0xff) + ((b_crc & 0xff) << 8)
-        for i in range(8):
-            c = w & 0x8000
-            w = w << 1
-            if c != 0:
-                w = w ^ 0x6900
-        return ((w >> 8) & 0xff)
-
-    def CRC(self,data):
-        res=0;
-        for b in data:
-            res=self.CRCMaker(ord(b), res)
-        return chr(res)
-
-    def checkCRC(self,data):
-        chk=self.CRC(data)
-        return chk=='\x00'
 
     def query(self):
         res=None
@@ -91,25 +72,18 @@ class NVT1N:
 	else:
 	    self.__ser.open()
 
-    def decodeBCD(self,bcd):
-        res=["%02x" % ord(x) for x in bcd]
-        res.reverse()
-        return list("".join(res))
-
-
-
     def getBRUTTO(self):
         weight=None
         res=self.query()
-        if res is None: return None,False,0
+        if res is None: return None,False
         
         con=ord(res[-1:])
         if ((con & self.__OVERLOAD) != self.__OVERLOAD):
 	    weight=float(res[:-1].strip())
-        return weight,((con & self.__SEDATION)==self.__SEDATION),con
+        return weight,((con & self.__STABILITY)==self.__STABILITY)
 
     def regWeight(self,weight):
-        if self.__d.reg(weight):
+        if (weight>0) and self.__d.reg(weight):
             self.log.d('regWeight: %s' % weight)
             return True
         else:
@@ -134,25 +108,25 @@ if __name__ == "__main__":
         try:
 	    #nvt.testquery()
 	    #nvt.log.d(nvt.query())
-            cur,stab,con=nvt.getBRUTTO()
+            cur,stab=nvt.getBRUTTO()
             if nvt.debug:
-                nvt.log.d(__name__+": weight = %1.1f (%i) (%x)" % (cur,stab,con))
+                nvt.log.d(__name__+": weight = %1.1f (%i)" % (cur,stab))
             if cur is None: continue
 
-		
+	    if stab:
+		cnt+=1 
+	    else: 
+		cnt=0
 		
 	    if last_stab_weight-cur>FILTER:
-		if nvt.regWeight(last_stab_weight):
+	        if nvt.regWeight(last_stab_weight):
 		    last_stab_weight=0
-		    cnt=0
-			    
-	    if stab:
-		if cnt>2:
-		    last_stab_weight=cur
+		
+	    elif (cur>FILTER) and (cnt>2):
+	        if (last_stab_weight>FILTER):
+		    last_stab_weight=min(last_stab_weight,cur)
 		else:
-		    cnt+=1
-	    else:
-		cnt=0
+		    last_stab_weight=cur
 	
 
             #if (sedation) and (starting) and (abs(weight-TABLE_WEIGHT)<1):
@@ -181,6 +155,6 @@ if __name__ == "__main__":
             nvt.log.e(__name__+' ERROR: %s' % e)
             continue
         finally:
-            time.sleep(1)
+            time.sleep(0.5)
 
 
