@@ -18,6 +18,6 @@ if __name__ == "__main__":
     nvt=NVT1N(DEVICE,BAUDRATE)
     nvt.setLogger('regweight')
     nvt.debug=True
-    print nvt.readRawData()
+    print " ".join(["%02x" % ord(x) for x in nvt.readRawData()])
 
 
