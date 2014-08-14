@@ -40,9 +40,9 @@ if __name__ == "__main__":
 		cnt=0
 		
 	    if last_stab_weight-cur>FILTER:
-		if db.reg(last_stab_weight):
+		if db.reg(last_stab_weight): 
+		    nvt.log.d('regWeight: %s' % last_stab_weight)
 		    last_stab_weight=0
-		    nvt.log.d('regWeight: %s' % weight)
 		
 	    elif (cur>FILTER) and (cnt>1):
 	        if (last_stab_weight>FILTER):
