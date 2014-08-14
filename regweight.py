@@ -22,6 +22,10 @@ if __name__ == "__main__":
     starting=True
     nvt.log.c("STARTING...")
     
+    if path.isfile(DUMP_FILE):
+        with open(DUMP_FILE,"rb") as dump:
+            old=pickle.load(dump)
+
     while True:
         try:
             cur,stab=nvt.getBRUTTO()
@@ -37,8 +41,8 @@ if __name__ == "__main__":
 		
 	    if last_stab_weight-cur>FILTER:
 		if db.reg(last_stab_weight):
-		    self.log.d('regWeight: %s' % weight)
 		    last_stab_weight=0
+		    nvt.log.d('regWeight: %s' % weight)
 		
 	    elif (cur>FILTER) and (cnt>1):
 	        if (last_stab_weight>FILTER):

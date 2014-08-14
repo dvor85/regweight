@@ -1,3 +1,4 @@
 base/
 *.pyc
 nohup.out
+*.dump
