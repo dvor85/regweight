@@ -2,6 +2,7 @@
 
 import sys,time,os,pickle
 from os import path
+from db import *
 from protocols import NVT1N
 
 DEVICE='/dev/ttyUSB0'
@@ -13,24 +14,21 @@ FILTER = 200
 if __name__ == "__main__":
     nvt=NVT1N(DEVICE,BAUDRATE)
     nvt.setLogger('regweight')
-    nvt.setDB(SELF_PATH)
     nvt.debug=True
+    db=DBreg(SELF_PATH)
     last_stab_weight=0
     cnt=0
-    must_dump=False
+    old=0
     starting=True
     nvt.log.c("STARTING...")
-
-    #if path.isfile(DUMP_FILE):
-    #    with open(DUMP_FILE,"rb") as dump:
-    #        old_weight=pickle.load(dump)
     
     while True:
         try:
             cur,stab=nvt.getBRUTTO()
-            if nvt.debug:
+            if (cur is None) or (cur < 0): continue
+
+	    if nvt.debug:
                 nvt.log.d(__name__+": weight = %1.1f (%i)" % (cur,stab))
-            if cur is None: continue
 
 	    if stab:
 		cnt+=1 
@@ -38,7 +36,8 @@ if __name__ == "__main__":
 		cnt=0
 		
 	    if last_stab_weight-cur>FILTER:
-	        if nvt.regWeight(last_stab_weight):
+		if db.reg(last_stab_weight):
+		    self.log.d('regWeight: %s' % weight)
 		    last_stab_weight=0
 		
 	    elif (cur>FILTER) and (cnt>1):
@@ -46,6 +45,11 @@ if __name__ == "__main__":
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
+	    
+	    if stab and (cur!=old):
+		old=cur
+		with open(DUMP_FILE,"wb") as dump:
+                    pickle.dump(old,dump)
 	
 
             #if (sedation) and (starting) and (abs(weight-TABLE_WEIGHT)<1):
