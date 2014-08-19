@@ -57,7 +57,7 @@ if __name__ == "__main__":
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
-		must_dump=True
+		must_dump=(cur!=last_stab_weight)
 	    
 	    if must_dump:
 		with open(DUMP_FILE,"wb") as dump:
