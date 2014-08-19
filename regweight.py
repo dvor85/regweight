@@ -53,11 +53,12 @@ if __name__ == "__main__":
 		    must_dump=True
 		
 	    elif (cur>FILTER) and (cnt>1):
+	        must_dump=(cur!=last_stab_weight)
 	        if (last_stab_weight>FILTER):
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
-		must_dump=(cur!=last_stab_weight)
+		
 	    
 	    if must_dump:
 		with open(DUMP_FILE,"wb") as dump:
