@@ -18,13 +18,13 @@ if __name__ == "__main__":
     db=DBreg(SELF_PATH)
     last_stab_weight=0
     cnt=0
-    old=0
+    must_dump=False
     starting=True
     nvt.log.c("STARTING...")
     
     if path.isfile(DUMP_FILE):
         with open(DUMP_FILE,"rb") as dump:
-            old=pickle.load(dump)
+            last_stab_weight=pickle.load(dump)
 
     while True:
         try:
@@ -43,40 +43,19 @@ if __name__ == "__main__":
 		if db.reg(last_stab_weight): 
 		    nvt.log.d('regWeight: %s' % last_stab_weight)
 		    last_stab_weight=0
+		    must_dump=True
 		
 	    elif (cur>FILTER) and (cnt>1):
 	        if (last_stab_weight>FILTER):
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
+		must_dump=(cur!=last_stab_weight)
 	    
-	    if stab and (cur!=old):
-		old=cur
-		with open(DUMP_FILE,"wb") as dump:
-                    pickle.dump(old,dump)
-	
-
-            #if (sedation) and (starting) and (abs(weight-TABLE_WEIGHT)<1):
-            #    continue
-
-            #if (abs(weight)<FILTER):
-            #    must_dump=not(old_weight==0)
-            #    old_weight=0
-            #    starting=False
-            #elif (abs(weight-old_weight)<FILTER) and (not starting):
-            #    if (sedation):
-            #        cnt+=1
-            #        if (cnt>2) and tenso.regWeight(weight):
-            #            old_weight=weight
-            #            must_dump=True
-            #            cnt=0
-            #    else:
-            #        cnt=0
-            #if must_dump:
-            #    with open(DUMP_FILE,"wb") as dump:
-            #        pickle.dump(old_weight,dump)
-            #    must_dump=False
-	    #old_weight=weight
+            if must_dump:
+                with open(DUMP_FILE,"wb") as dump:
+                    pickle.dump(last_stab_weight,dump)
+                must_dump=False
 
         except Exception as e:
             nvt.log.e(__name__+' ERROR: %s' % e)

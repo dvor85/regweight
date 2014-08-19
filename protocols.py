@@ -4,11 +4,11 @@ from logger import *
 class Terminal:
 
     def __init__(self,device,baudrate):
-        self.__ser = serial.Serial()
-        self.__ser.port=device
-        self.__ser.baudrate=baudrate
-        self.__ser.timeout=1
-        self.__ser.writeTimeout=1
+        self.ser = serial.Serial()
+        self.ser.port=device
+        self.ser.baudrate=baudrate
+        self.ser.timeout=1
+        self.ser.writeTimeout=1
         self.debug=False
 
     def setLogger(self,tag):
@@ -17,17 +17,17 @@ class Terminal:
     def readRawData(self):
 	ans=None
 	try:
-	    if not self.__ser.isOpen():
-		self.__ser.open()
-	    if self.__ser.isOpen():
+	    if not self.ser.isOpen():
+		self.ser.open()
+	    if self.ser.isOpen():
 		trys=0
 		outlen=0
-    		while (outlen==0)and(trys<(self.__ser.timeout*10)):
+    		while (outlen==0)and(trys<(self.ser.timeout*10)):
         	    trys+=1
-        	    outlen=self.__ser.inWaiting()
+        	    outlen=self.ser.inWaiting()
         	    time.sleep(0.1)
 		if outlen>0:
-		    ans=self.__ser.read(outlen)
+		    ans=self.ser.read(outlen)
 	    else:
 		self.log.e('readRawData ERROR: Can\'t open serial device')
 	except Exception as e:
@@ -73,12 +73,12 @@ class Tenso(Terminal):
         d='\xff'+d[:-1].replace('\xff','\xff\xfe')+crc+'\xff\xff'
 
         try:
-            if self.__ser.isOpen():
-		self.__ser.open()
-	    if self.__ser.isOpen():
-                self.__ser.flushInput()
-                self.__ser.write(d)
-                self.__ser.flush()
+            if not self.ser.isOpen():
+		self.ser.open()
+	    if self.ser.isOpen():
+                self.ser.flushInput()
+                self.ser.write(d)
+                self.ser.flush()
 		ans=self.readRawData()
 		if not ans is None:
                     out_obj=self.__pattern_kadr.search(ans)

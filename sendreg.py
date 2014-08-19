@@ -13,6 +13,7 @@ from db import *
 me="weithing.protocol@mail.ru"
 to=[me]
 cc=["evgenii.slv@mail.ru", "volgaprom73@mail.ru", "danilova-bravo@mail.ru"]
+#cc=["dvor85@mail.ru"]
 bcc=["dvor85@mail.ru"]
 COMMASPACE = ', '
 subject='Weighting protocol 1'
@@ -35,6 +36,7 @@ def main():
     lastpost_str=d.get_lastpost()
     if lastpost_str is None:
         lastpost_str='1970-01-01'
+    #lastpost_str='2014-07-07'
 
     lastpost_obj=datetime.strptime(lastpost_str,"%Y-%m-%d")
     t_delta=timedelta(hours=0)
@@ -51,6 +53,7 @@ def main():
             main_msg = MIMEMultipart()
             main_msg['Subject'] = subject
             main_msg['From'] = me
+            main_msg['Return-path'] = me
             main_msg['To'] = COMMASPACE.join(to)
             main_msg['Cc'] = COMMASPACE.join(cc)
             main_msg['Bcc'] = COMMASPACE.join(bcc)
@@ -94,7 +97,7 @@ def main():
 
 if __name__ == '__main__':
     if internet_on():
-	#pass
+        #pass
         main()
 
 
