@@ -19,14 +19,14 @@ if __name__ == "__main__":
     tenso.debug=True
     db=DBreg(SELF_PATH)
     last_stab_weight=0
+    must_dump=False
     cnt=0
-    old=0
     starting=True
     tenso.log.c("STARTING...")
     
     if path.isfile(DUMP_FILE):
         with open(DUMP_FILE,"rb") as dump:
-            old=pickle.load(dump)
+            last_stab_weight=pickle.load(dump)
 
     while True:
         try:
@@ -50,17 +50,19 @@ if __name__ == "__main__":
 		if db.reg(last_stab_weight): 
 		    tenso.log.d('regWeight: %s' % last_stab_weight)
 		    last_stab_weight=0
+		    must_dump=True
 		
 	    elif (cur>FILTER) and (cnt>1):
 	        if (last_stab_weight>FILTER):
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
+		must_dump=True
 	    
-	    if stab and (cur!=old):
-		old=cur
+	    if must_dump:
 		with open(DUMP_FILE,"wb") as dump:
-                    pickle.dump(old,dump)
+                    pickle.dump(last_stab_weight,dump)
+                must_dump=False
 	
 
         except Exception as e:
