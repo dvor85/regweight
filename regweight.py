@@ -67,7 +67,6 @@ if __name__ == "__main__":
 		with open(DUMP_FILE,"wb") as dump:
                     pickle.dump(last_stab_weight,dump)
                 must_dump=False
-	
 
         except Exception as e:
             tenso.log.e(__name__+' ERROR: %s' % e)
