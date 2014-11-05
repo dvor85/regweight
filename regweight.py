@@ -16,7 +16,7 @@ FILTER = 50
 if __name__ == "__main__":
     tenso=Tenso(DEVICE,BAUDRATE,ADDR)
     tenso.setLogger('regweight')
-    tenso.debug=True
+    tenso.debug=False
     db=DBreg(SELF_PATH)
     last_stab_weight=0
     must_dump=False
@@ -24,9 +24,12 @@ if __name__ == "__main__":
     starting=True
     tenso.log.c("STARTING...")
     
-    if path.isfile(DUMP_FILE):
-        with open(DUMP_FILE,"rb") as dump:
-            last_stab_weight=pickle.load(dump)
+    try:
+        if path.isfile(DUMP_FILE):
+            with open(DUMP_FILE,"rb") as dump:
+                last_stab_weight=pickle.load(dump)
+    except Exception as e:
+        tenso.log.e(__name__+' ERROR: %s' % e)
 
     while True:
         try:
