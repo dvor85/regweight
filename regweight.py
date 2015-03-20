@@ -10,7 +10,7 @@ BAUDRATE=38400
 ADDR='\x01'
 SELF_PATH=path.dirname(path.realpath(__file__))
 DUMP_FILE=path.join(SELF_PATH,'regweight.dump')
-TABLE_WEIGHT=107.5
+TABLE_WEIGHT=97.5
 FILTER = 50
 
 if __name__ == "__main__":
