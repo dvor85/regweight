@@ -1,5 +1,7 @@
 import sys,serial,time,re
-from logger import *
+import logger
+
+log = logger.Logger('regweight', 'protocols', logger.Logger.NOTICE)
 
 class Terminal:
 
@@ -9,10 +11,6 @@ class Terminal:
         self.ser.baudrate=baudrate
         self.ser.timeout=1
         self.ser.writeTimeout=1
-        self.debug=False
-
-    def setLogger(self,tag):
-	self.log=Logger(tag)
 
     def readRawData(self):
 	ans=None
@@ -29,9 +27,9 @@ class Terminal:
 		if outlen>0:
 		    ans=self.ser.read(outlen)
 	    else:
-		self.log.e('readRawData ERROR: Can\'t open serial device')
+		log.e('readRawData ERROR: Can\'t open serial device')
 	except Exception as e:
-            self.log.e('readRawData ERROR: %s' % e)
+            log.e('readRawData ERROR: %s' % e)
 	return ans
 	
 class Tenso(Terminal):
@@ -87,11 +85,11 @@ class Tenso(Terminal):
                     if self.checkCRC(outdata+outcrc):
                         res=outdata[2:] if (len(outdata)>1) else None
             else:
-		self.log.e('query ERROR: Can\'t open serial device')
+		log.e('query ERROR: Can\'t open serial device')
         except Exception as e:
-            self.log.e('query ERROR: %s' % e)
+            log.e('query ERROR: %s' % e)
             if not ans is None:
-                self.log.e('query ANSWER: %s' % "\\x".join(["%02x" % ord(x) for x in ans]))
+                log.e('query ANSWER: %s' % "\\x".join(["%02x" % ord(x) for x in ans]))
         return res
 
     def decodeBCD(self,bcd):
@@ -134,9 +132,9 @@ class NVT1N(Terminal):
         	outdata=out_obj.group('data')
         	res=outdata if (len(outdata)>1) else None
         except Exception as e:
-            self.log.e('query ERROR: %s' % e)
+            log.e('query ERROR: %s' % e)
             if not ans is None:
-                self.log.e('query ANSWER: %s' % "\\x".join(["%02x" % ord(x) for x in ans]))
+                log.e('query ANSWER: %s' % "\\x".join(["%02x" % ord(x) for x in ans]))
         return res
     
     def getBRUTTO(self):

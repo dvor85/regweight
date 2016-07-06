@@ -31,7 +31,8 @@ class DBreg:
         try:
             with self.conn:
                 return self.conn.execute("select * from %s where datetime(dt) between datetime('%s') and datetime('%s') order by dt" % (self.TABLE_WEIGHTS, dt1, dt2)).fetchall()
-        except:
+        except Exception as e:
+            print e
             return []
 
     def del_weight(self,idw):

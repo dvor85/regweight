@@ -3,44 +3,47 @@
 import sys,time,os,pickle
 from os import path
 from db import *
-from protocols import Tenso
+import protocols
+from config import *
+import logger
 
-DEVICE='/dev/ttyUSB0'
-BAUDRATE=38400
-ADDR='\x01'
+log = logger.Logger('regweight', 'Main', logger.Logger.NOTICE)
+
 SELF_PATH=path.dirname(path.realpath(__file__))
 DUMP_FILE=path.join(SELF_PATH,'regweight.dump')
-TABLE_WEIGHT=97.5
-FILTER = 50
 
 if __name__ == "__main__":
-    tenso=Tenso(DEVICE,BAUDRATE,ADDR)
-    tenso.setLogger('regweight')
-    tenso.debug=False
+    if TERMINAL.get('proto') == 'tenso':
+        term=protocols.Tenso(TERMINAL.get('dev'), TERMINAL.get('baudrate'), TERMINAL.get('addr'))
+    elif TERMINAL.get('proto') == 'nvt1n':
+        term=protocols.NVT1N(TERMINAL.get('dev'), TERMINAL.get('baudrate'))
+    else:
+        log.e('TERMINAL.proto not defined')
+        sys.exit()
+        
     db=DBreg(SELF_PATH)
     last_stab_weight=0
     must_dump=False
     cnt=0
     starting=True
-    tenso.log.c("STARTING...")
+    log("STARTING...")
     
     try:
         if path.isfile(DUMP_FILE):
             with open(DUMP_FILE,"rb") as dump:
                 last_stab_weight=pickle.load(dump)
     except Exception as e:
-        tenso.log.e(__name__+' ERROR: %s' % e)
+        log.e(e)
 
     while True:
         try:
-            cur,stab=tenso.getBRUTTO()
+            cur,stab=term.getBRUTTO()
             if (cur is None) or (cur < 0): continue
 
-	    if tenso.debug:
-                tenso.log.d(__name__+": weight = %1.1f (%i)" % (cur,stab))
+            log.d("weight = %1.1f (%i)" % (cur,stab))
                 
             if (stab) and (starting):
-                if (abs(cur-TABLE_WEIGHT)>1):
+                if (abs(cur-TERMINAL.get('table_weight', 0))>1):
                     starting=False
                 continue
 
@@ -49,15 +52,15 @@ if __name__ == "__main__":
 	    else: 
 		cnt=0
 		
-	    if last_stab_weight-cur>FILTER:
+	    if last_stab_weight-cur>TERMINAL.get('filter'):
 		if db.reg(last_stab_weight): 
-		    tenso.log.d('regWeight: %s' % last_stab_weight)
+		    log('reg Weight: %s' % last_stab_weight)
 		    last_stab_weight=0
 		    must_dump=True
 		
-	    elif (cur>FILTER) and (cnt>1):
+	    elif (cur>TERMINAL.get('filter')) and (cnt>1):
 	        must_dump=(cur!=last_stab_weight)
-	        if (last_stab_weight>FILTER):
+	        if (last_stab_weight>TERMINAL.get('filter')):
 		    last_stab_weight=min(last_stab_weight,cur)
 		else:
 		    last_stab_weight=cur
@@ -69,7 +72,7 @@ if __name__ == "__main__":
                 must_dump=False
 
         except Exception as e:
-            tenso.log.e(__name__+' ERROR: %s' % e)
+            log.e(e)
             continue
         finally:
             time.sleep(0.5)

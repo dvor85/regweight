@@ -1,10 +1,17 @@
 
-ME={'subj': "Subject of mail",
-    'mail': "mail from address",
-    'login': "smtp login",
-    'password': "smtp password",
-    'smtp': "smtp server"}
+FROM={'subj': "Subject of mail",
+      'mail': "mail from address",
+      'login': "smtp login",
+      'password': "smtp password",
+      'smtp': "smtp server"}
 
-TO={'to': [ME.get('mail'), ...],
+TO={'to': ["mail to address", ...],
     'cc': ["mail cc address", ...],
     'bcc': ["mail bcc address"]}
+
+TERMINAL={'proto': 'protocol name {tenso or nvt1n}',
+          'dev': '/dev/ttyUSB0',
+          'baudrate': 38400,
+          'addr': '\x01', 
+          'filter': 50,
+          'table_weight': 97.5}

@@ -16,8 +16,10 @@ FILTER = 200
 
 if __name__ == "__main__":
     tenso=Tenso(DEVICE,BAUDRATE,ADDR)
-    tenso.setLogger('regweight')
-    tenso.debug=True
-    print " ".join(["%02x" % ord(x) for x in tenso.readRawData()])
+    print tenso.getBRUTTO()
+    print tenso.readRawData()
+    #tenso.setLogger('regweight')
+    #tenso.debug=True
+    #print " ".join(["%02x" % ord(x) for x in tenso.readRawData()])
 
 

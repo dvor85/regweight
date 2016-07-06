@@ -4,8 +4,8 @@ import smtplib,os,urllib2
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import logger
 from datetime import *
-from logger import *
 from os import path
 from db import *
 from config import *
@@ -13,7 +13,7 @@ from config import *
 COMMASPACE = ', '
 
 SELF_PATH=path.dirname(path.realpath(__file__))
-
+log = logger.Logger('regweight', 'sendreg', logger.Logger.NOTICE)
 
 def internet_on():
     try:
@@ -24,7 +24,6 @@ def internet_on():
 
 
 def main():
-    log=Logger('regweight')
     d=DBreg(SELF_PATH)
     now=datetime.today()
     lastpost_str=d.get_lastpost()
@@ -45,9 +44,9 @@ def main():
         weights=d.select((lastpost_obj+t_delta).strftime(dt_format),(now+t_delta).strftime(dt_format))
         if len(weights)>0:
             main_msg = MIMEMultipart()
-            main_msg['Subject'] = ME.get('subj')
-            main_msg['From'] = ME.get('mail')
-            main_msg['Return-path'] = ME.get('mail')
+            main_msg['Subject'] = FROM.get('subj')
+            main_msg['From'] = FROM.get('mail')
+            main_msg['Return-path'] = FROM.get('mail')
             main_msg['To'] = COMMASPACE.join(TO.get('to'))
             main_msg['Cc'] = COMMASPACE.join(TO.get('cc'))
             main_msg['Bcc'] = COMMASPACE.join(TO.get('bcc'))
@@ -78,7 +77,7 @@ def main():
                 text+="%s;%s\n" % (d_obj.strftime("%H:%M:%S"), weight)
                 total+=weight
 
-            smtp=smtplib.SMTP(ME.get('smtp', 'localhost'))
+            smtp=smtplib.SMTP(FROM.get('smtp', 'localhost'))
             try:
                 smtp.ehlo()
                 # If we can encrypt this session, do it
@@ -86,8 +85,8 @@ def main():
                     smtp.starttls()
                     smtp.ehlo() # re-identify ourselves over TLS connection
 
-                smtp.login(ME.get('login'), ME.get('password'))
-                smtp.sendmail(ME.get('mail'), TO.get('to')+TO.get('cc')+TO.get('bcc'), main_msg.as_string())
+                smtp.login(FROM.get('login'), FROM.get('password'))
+                smtp.sendmail(FROM.get('mail'), TO.get('to')+TO.get('cc')+TO.get('bcc'), main_msg.as_string())
                 log.d('SENDREG SEND: OK')
                 if not d.set_lastpost(now.strftime("%Y-%m-%d")):
                     log.d('SET LASTPOST: FAIL')
