@@ -2,3 +2,4 @@ base/
 *.pyc
 nohup.out
 *.dump
+config.py

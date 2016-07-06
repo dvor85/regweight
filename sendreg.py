@@ -8,15 +8,9 @@ from datetime import *
 from logger import *
 from os import path
 from db import *
+from config import *
 
-
-me="weithing.protocol@mail.ru"
-to=[me]
-cc=["evgenii.slv@mail.ru", "volgaprom73@mail.ru", "danilova-bravo@mail.ru"]
-#cc=["dvor85@mail.ru"]
-bcc=["dvor85@mail.ru"]
 COMMASPACE = ', '
-subject='Weighting protocol 1'
 
 SELF_PATH=path.dirname(path.realpath(__file__))
 
@@ -51,12 +45,12 @@ def main():
         weights=d.select((lastpost_obj+t_delta).strftime(dt_format),(now+t_delta).strftime(dt_format))
         if len(weights)>0:
             main_msg = MIMEMultipart()
-            main_msg['Subject'] = subject
-            main_msg['From'] = me
-            main_msg['Return-path'] = me
-            main_msg['To'] = COMMASPACE.join(to)
-            main_msg['Cc'] = COMMASPACE.join(cc)
-            main_msg['Bcc'] = COMMASPACE.join(bcc)
+            main_msg['Subject'] = ME.get('subj')
+            main_msg['From'] = ME.get('mail')
+            main_msg['Return-path'] = ME.get('mail')
+            main_msg['To'] = COMMASPACE.join(TO.get('to'))
+            main_msg['Cc'] = COMMASPACE.join(TO.get('cc'))
+            main_msg['Bcc'] = COMMASPACE.join(TO.get('bcc'))
 
             text=''
             total=0
@@ -84,9 +78,16 @@ def main():
                 text+="%s;%s\n" % (d_obj.strftime("%H:%M:%S"), weight)
                 total+=weight
 
-            smtp=smtplib.SMTP('localhost')
+            smtp=smtplib.SMTP(ME.get('smtp', 'localhost'))
             try:
-                smtp.sendmail(me, to+cc+bcc, main_msg.as_string())
+                smtp.ehlo()
+                # If we can encrypt this session, do it
+                if smtp.has_extn('STARTTLS'):
+                    smtp.starttls()
+                    smtp.ehlo() # re-identify ourselves over TLS connection
+
+                smtp.login(ME.get('login'), ME.get('password'))
+                smtp.sendmail(ME.get('mail'), TO.get('to')+TO.get('cc')+TO.get('bcc'), main_msg.as_string())
                 log.d('SENDREG SEND: OK')
                 if not d.set_lastpost(now.strftime("%Y-%m-%d")):
                     log.d('SET LASTPOST: FAIL')

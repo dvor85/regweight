@@ -1,0 +1,10 @@
+
+ME={'subj': "Subject of mail",
+    'mail': "mail from address",
+    'login': "smtp login",
+    'password': "smtp password",
+    'smtp': "smtp server"}
+
+TO={'to': [ME.get('mail'), ...],
+    'cc': ["mail cc address", ...],
+    'bcc': ["mail bcc address"]}
