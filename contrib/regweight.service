@@ -1,0 +1,10 @@
+[Unit]
+Description=regweight
+
+[Service]
+ExecStart=/home/regweight/regweight.py
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
